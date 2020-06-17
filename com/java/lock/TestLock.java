@@ -36,7 +36,7 @@ public class TestLock {
                 String threadName = Thread.currentThread().getName();
                 watchCallBack.setThreadName(threadName);
                 watchCallBack.tryLock();
-                System.out.println("work in lock.....");
+                System.out.println("分支切换.....");
                 //干活
                 //释放锁
                 watchCallBack.unLock();
