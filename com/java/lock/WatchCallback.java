@@ -38,7 +38,7 @@ public class WatchCallback implements Watcher,AsyncCallback.StatCallback,AsyncCa
     }
 
     public void tryLock(){
-        zk.create("",threadName.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL,this,"abc");
+        zk.create("/lock",threadName.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL,this,"abc");
         try {
             cc.await();
         } catch (InterruptedException e) {
@@ -71,7 +71,7 @@ public class WatchCallback implements Watcher,AsyncCallback.StatCallback,AsyncCa
             case NodeCreated:
                 break;
             case NodeDeleted:
-                zk.getChildren("",false,this,"abc");
+                zk.getChildren("/",false,this,"abc");
                 break;
             case NodeDataChanged:
                 break;
@@ -79,7 +79,7 @@ public class WatchCallback implements Watcher,AsyncCallback.StatCallback,AsyncCa
                 break;
         }
     }
-
+    //每个线程启动后创建锁，然后get锁目录的所有孩子，不注册watch在锁目录
     @Override
     public void processResult(int i, String s, Object o, String s1) {
         if(s1 != null){
@@ -89,6 +89,7 @@ public class WatchCallback implements Watcher,AsyncCallback.StatCallback,AsyncCa
         }
     }
 
+    //获得目录的所有有序节点，然后排序，然后取自己在有序list中的index
     @Override
     public void processResult(int i, String s, Object o, List<String> list) {
         Collections.sort(list);
@@ -96,7 +97,7 @@ public class WatchCallback implements Watcher,AsyncCallback.StatCallback,AsyncCa
 
         if(a == 0){
             try {
-                zk.setData("",threadName.getBytes(),-1);
+                zk.setData("/lock",threadName.getBytes(),-1);
                 cc.countDown();
             } catch (KeeperException e) {
                 e.printStackTrace();
